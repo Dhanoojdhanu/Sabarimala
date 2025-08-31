@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Drive Excel Viewer</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 10px;
+      background: #f9f9f9;
+    }
+    h2 {
+      text-align: center;
+    }
+    .search-box {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    .table-container {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      text-align: left;
+      white-space: nowrap;
+    }
+    th {
+      background: #4CAF50;
+      color: white;
+      padding: 6px 8px;     /* smaller padding */
+      font-size: 14px;      /* smaller font */
+      line-height: 1.2;     /* tighter height */
+    }
+    td {
+      padding: 8px;
+    }
+    tr:nth-child(even) {
+      background: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Google Drive Excel Data</h2>
+  <input type="text" class="search-box" id="searchInput" placeholder="Search...">
+
+  <div class="table-container">
+    <table id="dataTable">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const fileUrl = "https://docs.google.com/spreadsheets/d/1IqHUKaQz2iG6P6VWosvCYW1728541z7C/export?format=xlsx";
+
+    fetch(fileUrl)
+      .then(res => res.arrayBuffer())
+      .then(data => {
+        const workbook = XLSX.read(data, { type: "array" });
+        const firstSheet = workbook.SheetNames[0];
+        const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
+        buildTable(sheetData);
+      });
+
+    function buildTable(sheetData) {
+      const table = document.getElementById("dataTable");
+      const thead = table.querySelector("thead");
+      const tbody = table.querySelector("tbody");
+
+      if (!sheetData.length) return;
+
+      const headers = sheetData[0];
+      thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+      tbody.innerHTML = sheetData.slice(1).map(row =>
+        "<tr>" + headers.map((h, i) => `<td>${row[i] !== undefined ? row[i] : ""}</td>`).join("") + "</tr>"
+      ).join("");
+
+      document.getElementById("searchInput").addEventListener("keyup", function() {
+        const value = this.value.toLowerCase();
+        const rows = tbody.querySelectorAll("tr");
+        rows.forEach(row => {
+          row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+        });
+      });
+    }
+  </script>
+</body>
+</html>
