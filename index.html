@@ -47,8 +47,8 @@
 
     .table-container {
       overflow-x: auto;
-      display: none;
       width: 100%;
+      display: none; /* hidden by default */
     }
 
     table {
@@ -128,16 +128,25 @@
       ).join("");
 
       const searchInput = document.getElementById("searchInput");
-      searchInput.addEventListener("keyup", function() {
-        const value = this.value.toLowerCase();
+      searchInput.addEventListener("input", function() {
+        const value = this.value.trim().toLowerCase();
         const rows = tbody.querySelectorAll("tr");
+
+        if (value === "") {
+          // Hide the table if search box is empty
+          tableContainer.style.display = "none";
+          return;
+        }
+
         let anyVisible = false;
         rows.forEach(row => {
           const match = row.innerText.toLowerCase().includes(value);
           row.style.display = match ? "" : "none";
-          if(match) anyVisible = true;
+          if (match) anyVisible = true;
         });
-        tableContainer.style.display = value ? "block" : "none";
+
+        // Show the table only if some rows are visible
+        tableContainer.style.display = anyVisible ? "block" : "none";
       });
     }
   </script>
